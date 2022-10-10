@@ -17,12 +17,12 @@
         </b-row>
       </div>
 
-      <div :class="getClass('fourth', 'prime', ' p-2 pb-4 mb-5')" v-if="showToolbar">
+      <div :class="getClass('fourth', 'prime', ' p-2 pb-4 mb-3')" v-if="showToolbar">
         <b-row cols="2" :cols-xl="colGet" >
           <b-col class="mt-4">
               <div align="center">
                 <div class="headDiv">
-                  Words
+                  WORDS
                 </div>
                 <div class="spinDiv d-none d-sm-block">
                   <b-form-spinbutton v-model="words" min="6" max="30" step=2 vertical style="height:125px"></b-form-spinbutton>
@@ -39,7 +39,7 @@
           <b-col class="mt-4" v-if="testType === 'transEng' || testType === 'transCh'">
               <div align="center">
                 <div class="headDiv">
-                  Choices
+                  CHOICES
                 </div>
                 <div class="spinDiv d-none d-sm-block">
                 <b-form-spinbutton v-model="choices" min="3" max="5" vertical style="height:125px"></b-form-spinbutton>
@@ -52,7 +52,7 @@
 
           <b-col class="mt-4">
             <div align="center">
-              <div class="headDiv"> <span v-if="testType.includes('Eng')"> Sound </span> <span v-else> Mode </span> </div><br>
+              <div class="headDiv"> <span v-if="testType.includes('Eng') || testType.includes('type')"> SOUND </span> <span v-else> MODE </span> </div><br>
               <b-form-radio-group
                 style="width:120px"
                 v-model="sound"
@@ -64,7 +64,7 @@
             </div>
             <br>
             <div align="center"  v-if="testType === 'transEng' || testType === 'transCh'">
-              <div class="headDiv"> Labels </div><br>
+              <div class="headDiv"> LABELS </div><br>
               <b-form-radio-group
                   style="width:120px"
                   v-model="label"
@@ -78,7 +78,7 @@
 
           <b-col class="mt-4" v-if="testType === 'typeTest'">
             <div align="center">
-              <div class="headDiv"> Display </div><br>
+              <div class="headDiv"> DISPLAY </div><br>
               <b-form-radio-group
               style="width:120px"
               v-model="display"
@@ -92,7 +92,7 @@
 
           <b-col class="mt-4" v-if="testType === 'typeTest'">
              <div align="center">
-              <div class="headDiv"> Feedback </div><br>
+              <div class="headDiv"> FEEDBACK </div><br>
               <b-form-radio-group
               style="width:120px"
               v-model="feedback"
@@ -106,7 +106,7 @@
 
           <b-col class="mt-4" v-if="testType === 'typeTest'">
             <div align="center">
-                <div class="headDiv"> Assist </div><br>
+                <div class="headDiv"> ASSIST </div><br>
               <b-form-radio-group
                 style="width:120px"
                 v-model="spelling"
@@ -120,7 +120,7 @@
 
           <b-col class="mt-4">
             <div align="center">
-                <div class="headDiv"> Sort </div><br>
+                <div class="headDiv"> SORT </div><br>
               <b-form-radio-group
                 style="width:120px"
                 v-model="sort"
@@ -134,6 +134,9 @@
 
         </b-row>
       </div>
+
+      <div class="helpTab1" v-if="$store.getters.getHelp && showToolbar"> <h6 style="border-bottom: 2px solid grey" v-for="(t, key) in breaker($store.getters.getHelp['Toolbar'][testType])" :key="key"> {{t}} </h6>  </div>
+      <div class="helpTab1" v-if="$store.getters.getHelp && !showToolbar"> <h6 style="border-bottom: 2px solid grey" v-for="(t, key) in breaker($store.getters.getHelp['Toolbar']['answers'])" :key="key"> {{t}} </h6>  </div>
 
       <div>
       </div>
@@ -178,7 +181,8 @@ export default {
       ],
       spelling: '---',
       spellingOptions: [
-        { value: 'blanks', text: 'blank' },
+        { value: '---', text: 'blank' },
+        { value: 'blanks', text: 'spaces' },
         { value: 'showFL', text: 'first/last' },
         { value: 'const', text: '+ vowels' },
         { value: 'vowels', text: '- vowels' },
@@ -263,6 +267,7 @@ export default {
           }
         }
       } else if (this.sort === 'misc.') {
+        console.log('misc set')
         for (let item in vocabList) {
           if (vocabList[item].English.includes('-') ||
               vocabList[item].English.includes("'") ||
@@ -271,6 +276,7 @@ export default {
               vocabList[item].Gr === 'prop.' ||
               vocabList[item].Gr === 'abbr.'
           ) {
+            console.log('misc', vocabList[item])
             if (this.sound === 'sdTy' && vocabList[item].Gr === 'abbr.') {
               console.log('pass abbr.')
             } else {
@@ -286,7 +292,7 @@ export default {
         }
       }
       console.log(this.amendedList.length < 6, this.sort, this.special)
-      // check there are enought words available
+      // check there are enough words available
       if (this.amendedList.length < 6) {
         alert('Not enough words found to test this category')
         this.sort = '---'
@@ -296,8 +302,10 @@ export default {
         this.words = this.amendedList.length
       }
       if (this.testType === 'typeTest') {
+        console.log('make spelling')
         this.makeSpelling()
       } else {
+        console.log('make choices')
         this.makeChoices()
       }
     },
@@ -387,19 +395,24 @@ export default {
       let i = 0
       let newList = this.shuffle(this.amendedList)
 
-      while (i < this.words) {
+      while (this.testItemsRoot.length < this.words) {
         let randomItem = newList[i]
 
+        console.log(i, this.words, randomItem)
+        var assist = ['showFL', 'const', 'vowels', 'typos', 'scramble']
         if (!randomItem) {
           // this step is unnecessary now
-          // console.log('pass', randomItem)
-        } else if (this.spelling && randomItem.Gr === 'abbr.') {
-          // console.log('pass abbr')
+          console.log('pass random', randomItem)
+          i++
+        } else if (assist.includes(this.spelling) && randomItem.Gr === 'abbr.') {
+          // abreviations do not work with spelling assist
+          console.log('pass abbr')
+          i++
         } else {
           // CHANGE MADE new code for spelling set up
           let spell = '______________'
-          if (this.spelling) {
-            // console.log('CHECK', randomItem.Gr)
+          if (this.spelling !== '---') {
+            console.log('CHECK', randomItem.Gr)
             spell = wordFix(randomItem.English, this.spelling)
           }
 
@@ -448,6 +461,10 @@ export default {
     },
     retryTest: function () {
       this.$emit('retry', null)
+    },
+    breaker: function (text) {
+      var tList = text.split(';')
+      return tList
     },
     alphabet: function () {
       let alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
@@ -505,6 +522,41 @@ export default {
       ]
     }
 
+    if (this.testType === 'typeTest') {
+      this.sound = 'sdEn'
+      this.soundOptions = [
+        { text: 'English', value: 'sdEn' },
+        { text: 'Chinese', value: 'sdCh' },
+        { text: 'None', value: 'sdOff' }
+      ]
+    }
+
+    if (this.$store.state.userProfile.vocab.includes('apan')) {
+      this.spellingOptions = [
+        { value: '---', text: 'blank' },
+        { value: 'blanks', text: 'spaces' },
+        { value: 'scramble', text: 'scramble' },
+        { value: 'all', text: 'show all' }
+      ]
+      if (this.testType === 'transCh') {
+        this.soundOptions = [
+          { text: 'Exam', value: 'sdEx' },
+          { text: 'Normal', value: 'sdOff' }
+        ]
+      } else if (this.testType === 'typeTest') {
+        this.soundOptions = [
+          { text: 'Japanese', value: 'sdEn' },
+          { text: 'Chinese', value: 'sdCh' },
+          { text: 'None', value: 'sdOff' }
+        ]
+        this.displayOptions = [
+          { text: 'Japanese', value: 'text_On' },
+          { text: 'Label', value: 'label_On' },
+          { text: 'None', value: 'all_Off' }
+        ]
+      }
+    }
+
     if (this.$store.getters.checkQuiz) {
       this.sortOptions.pop()
       this.sortOptions.pop()
@@ -514,14 +566,6 @@ export default {
     //   this.sortOptions.push({ value: 'q', text: 'QUIZ' })
     // }
 
-    if (this.testType === 'typeTest') {
-      this.sound = 'sdEn'
-      this.soundOptions = [
-        { text: 'English', value: 'sdEn' },
-        { text: 'Chinese', value: 'sdCh' },
-        { text: 'None', value: 'sdOff' }
-      ]
-    }
     // console.log(this.testType)
     console.log(this.$store.state.logsRecord.settings)
     if (this.$store.state.logsRecord.settings[this.testType]) {

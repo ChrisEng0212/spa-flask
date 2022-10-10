@@ -18,6 +18,8 @@
               <h5> Or just play with AI Bot </h5>
             </div>
 
+      <div class="helpTab1" v-if="$store.getters.getHelp && validClass"> <h6 style="border-bottom: 2px solid grey" v-for="(t, key) in breaker($store.getters.getHelp['Toolbar']['games'])" :key="key"> {{t}} </h6>  </div>
+
             <div class="bg-grey text-cream">
               <b-row align="center">
                 <b-col>
@@ -289,8 +291,8 @@ export default {
       challengeMode: null,
       gameSelect: 'TransEng',
       gameTypes: [
-        { value: 'TransEng', text: 'En > Ch' },
-        { value: 'TransCh', text: 'Ch > En' },
+        { value: 'TransEng', text: this.getLanguage()[0] },
+        { value: 'TransCh', text: this.getLanguage()[1] },
         { value: 'TypeMatch', text: 'Spelling' },
         { value: 'MemoryMatch', text: 'Memory' }
       ],
@@ -317,6 +319,17 @@ export default {
     }
   },
   methods: {
+    getLanguage () {
+      if (this.$store.state.userProfile.vocab.includes('apan')) {
+        return ['Jp > Ch', 'Ch > Jp']
+      } else {
+        return ['En > Ch', 'Ch > En']
+      }
+    },
+    breaker: function (text) {
+      var tList = text.split(';')
+      return tList
+    },
     filterOnline: function (row) {
       if (row.status === 1 || row.status === 2) {
         return true

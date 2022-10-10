@@ -29,7 +29,10 @@
             v-model="selected[0]"
             ></b-form-input>
           </b-col>
+
         </b-row>
+          <div class="helpTab1" v-if="$store.getters.getHelp"> {{$store.getters.getHelp['Dictionary']['input']}}  </div>
+
         <b-row >
           <b-col align="center">
             <button v-if="Object.keys(activeQuiz).length > 0" class="buttonDiv bg-second p-1" style="width:60px" @click="changeSelected('q')"> <b-icon-card-checklist :variant="getIcon('q')" font-scale="1.5"></b-icon-card-checklist><br><span class="text-cream" style="font-size:10pt">QUIZ</span></button>
@@ -42,8 +45,8 @@
             <button  :class="getSoundButton()" style="width:60px;t" @click="tapSound()"> <b-icon-soundwave :variant="getSoundwave()" font-scale="1.5"></b-icon-soundwave><br><span class="text-cream" style="font-size:10pt">TEST</span></button>
             <b-form-select class="bg-second text-cream" style="width:10%;overflow-y: hidden" @change="selected[2] = null" v-model="selected[1]" :options="optionsCheck" :select-size="1"></b-form-select>
           </b-col>
-
         </b-row>
+          <div class="helpTab1" v-if="$store.getters.getHelp"> <span v-for="(t, key) in breaker($store.getters.getHelp['Dictionary']['dictTabs'])" :key="key"> {{t}} <br> </span> </div>
         <b-row class="mt-3" align="center">
           <b-col>
               <b-form-group>
@@ -61,6 +64,8 @@
               </b-form-group>
           </b-col>
         </b-row>
+          <div class="helpTab1" v-if="$store.getters.getHelp"> {{$store.getters.getHelp['Dictionary']['sortTabs']}}  </div>
+
       </div>
 
       <div align="center" v-if="selected[1] === 'p' && !showPictures">
@@ -377,6 +382,10 @@ export default {
     }
   },
   methods: {
+    breaker: function (text) {
+      var tList = text.split(';')
+      return tList
+    },
     showAlert: function () {
       this.$refs['alert'].show()
     },
@@ -538,9 +547,56 @@ export default {
       let alArr = alphabet.split('')
 
       this.shuffle(alArr)
-      this.selected = [alArr[0], null, null]
+
+      if (!this.checkEnglish()) {
+        this.selected = [null, null, null]
+      } else {
+        this.selected = [alArr[0], null, null]
+      }
+    },
+    checkEnglish: function () {
+      // check if dictionary is english or not
+      // in this case Japanese
+      if ((this.vocabList).includes('apan')) {
+        return false
+      } else {
+        console.log('vocabList True', this.vocabList)
+        return true
+      }
+    },
+    filterTwo: function (row, filter) {
+      if (filter[0] === null && filter[1] === null && filter[2] == null) {
+        return true
+      } else if (filter[0] === '' && filter[1] === null && filter[2] == null) {
+        return true
+      } else if (filter[1] === '*') {
+        if (row.Star) {
+          return true
+        }
+      } else if (filter[1] === row.English) {
+        return true
+      } else if (filter[1] === 'p') {
+        if (row.Picture) {
+          return true
+        }
+      } else if (filter[1] != null) {
+        if (row.Gr === filter[1]) {
+          return true
+        }
+      } else if (filter[2] != null) {
+        if (row.totalScore === filter[2] && row.tested) {
+          return true
+        }
+      } else if (filter[0].trim() != null && filter[0].trim().length >= 1) {
+        if ((row.English).includes(filter[0])) {
+          return true
+        }
+      }
     },
     filterTable: function (row, filter) {
+      if (!this.checkEnglish()) {
+        return this.filterTwo(row, filter)
+      }
       if (filter[0] === null) {
         return false
       }
@@ -588,6 +644,8 @@ export default {
             return true
           }
         }
+      } else if (!this.checkEnglish) {
+        return true
       } else {
         return false
       }
@@ -712,8 +770,8 @@ export default {
   },
   created () {
     // this.alphabet()
-    this.randomLet()
     this.vocabList = this.$store.state.userProfile.vocab
+    this.randomLet()
     // this.tableItems = this.$store.getters.makeList
     // console.log(this.tableItems)
     if (!this.$store.getters.isAuthenticated) {

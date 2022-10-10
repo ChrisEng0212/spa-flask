@@ -10,47 +10,7 @@ import { authenticate, register,
   instructorRedis,
   addAudio
 } from '@/api'
-import tourism1 from '../assets/json/tourism1.json'
-import tourism from '../assets/json/tourism.json'
-import digital1 from '../assets/json/digital1.json'
-import culinary1 from '../assets/json/culinary1.json'
-import culinary2 from '../assets/json/culinary2.json'
-import generalY from '../assets/json/generalY.json'
-import generalW from '../assets/json/generalW.json'
-import generalD from '../assets/json/generalD.json'
-import generalV from '../assets/json/generalV.json'
-import generalT from '../assets/json/generalT.json'
-import generalG from '../assets/json/generalG.json'
-import generalJW1 from '../assets/json/generalJW1.json'
-import generalBell from '../assets/json/generalBell.json'
-import generalAlice from '../assets/json/generalAlice.json'
-import LNC1 from '../assets/json/LNCV.json'
-import presentation from '../assets/json/presentation.json'
-import food from '../assets/json/food.json'
-// import Bella from '../assets/json/BellaRedo.json'
-// import test from '../assets/json/vqc2.json'
-// import cul from '../assets/json/cul.json'
-
-let dictionaries = {
-  'tourism1': tourism1,
-  'tourism': tourism,
-  'digital1': digital1,
-  'culinary2': culinary2,
-  'culinary1': culinary1,
-  'generalY': generalY,
-  'generalW': generalW,
-  'generalD': generalD,
-  'generalV': generalV,
-  'generalT': generalT,
-  'generalG': generalG,
-  'generalBell': generalBell,
-  'generalJW1': generalJW1,
-  'generalAlice': generalAlice,
-  'LNC1': LNC1,
-  'presentation': presentation,
-  'high': null,
-  'food': food
-}
+import {dictionaries} from '@/vocab'
 
 Vue.use(Vuex)
 
@@ -62,9 +22,11 @@ const state = {
   setRecord: { dictRecord: {}, starRecord: {}, addRecord: {} },
   updateStatus: true,
   skeleton: false,
+  helpMode: false,
+  helpj: dictionaries().helpj,
   jwt: localStorage.token || '',
-  testJ: null,
-  master: dictionaries[parseLocal(localStorage.userProfile).vocab],
+  testJ: dictionaries().japanBasic,
+  master: dictionaries()[parseLocal(localStorage.userProfile).vocab],
   testActive: false,
   device: localStorage.device || '',
   loginTime: localStorage.loginTime || '',
@@ -86,7 +48,10 @@ const state = {
     d: 'digital',
     c: 'culinary',
     g: 'general',
-    p: 'presentation'
+    P: 'presentation',
+    b: 'japanesebasic',
+    p: 'japanesepersonal'
+
   },
   scheme: {
     prime: 'prime',
@@ -208,6 +173,9 @@ const actions = {
   },
   testActive (context, bol) {
     context.commit('setTestActive', bol)
+  },
+  setHelp (context) {
+    context.commit('setHelp')
   },
   openSocket (context) {
     context.commit('setSocket')
@@ -388,7 +356,7 @@ const mutations = {
   },
   setMaster (state, payload) {
     // console.log('setMaster payload = ', payload.userProfile.vocab)
-    state.master = dictionaries[payload.userProfile.vocab]
+    state.master = dictionaries()[payload.userProfile.vocab]
   },
   setRecords (state, payload) {
     /// set records on page refresh
@@ -571,6 +539,10 @@ const mutations = {
     state.testActive = bol
     // console.log('testActive', state.testActive)
   },
+  setHelp (state) {
+    state.helpMode = !state.helpMode
+    // console.log('testActive', state.testActive)
+  },
   sendRecords (state) {
     if (state.updateStatus || state.skeleton) {
       return false
@@ -677,6 +649,14 @@ const mutations = {
 
 const getters = {
   // reusable data accessors
+  getHelp (state) {
+    if (!state.helpMode) {
+      return false
+    } else {
+      console.log('helpMode', state.help)
+      return state.helpj
+    }
+  },
   classRecords (state) {
     return state.instructor.classRecords
   },
@@ -718,9 +698,9 @@ const getters = {
   },
   generalGet () {
     let totalDict = {}
-    for (let d in dictionaries) {
+    for (let d in dictionaries()) {
       if (d[0] === 'g') {
-        for (let v in dictionaries[d]) {
+        for (let v in dictionaries()[d]) {
           totalDict[v] = 1
         }
       }
@@ -843,6 +823,7 @@ const getters = {
       let vc = state.userProfile.vocab[0]
       let s3root = 'https://vocab-lms.s3-ap-northeast-1.amazonaws.com/public/'
       let s3 = s3root + state.audioLinks[vc]
+      // console.log(vc, s3)
       let mp3en = s3 + '_en/' + vocab + '.mp3'
       let mp3ch = s3 + '_ch/' + vocab + '.mp3'
       let origin = 'master'

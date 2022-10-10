@@ -15,7 +15,7 @@
       <div class="bg-grey">
         <div v-for="(item, key) in testItems" :key="key">
             <div v-if="testItems.indexOf(item) === filter">
-                  <button class="questionDiv bg-second" @mouseover="hover=true" @mouseleave="hover=false" :class="{ active: hover }" >
+                  <button class="questionDiv bg-second" @click="playAudio(item.sdCh)" @mouseover="hover=true" @mouseleave="hover=false" :class="{ active: hover }" >
                     <span v-if="settings.label==='lbOn' || settings.label==='lbQu' "> &nbsp; ({{item.Gr}}) </span>
                     <span> {{ item.Chinese }} </span>
                   </button>
@@ -110,9 +110,9 @@ export default {
   },
   data () {
     return {
-      pageHead: 'Chinese >> English',
+      pageHead: this.titleCheck(),
       testType: 'transCh',
-      title: 'Chinese >> English',
+      title: this.titleCheck(),
       toolbarShow: true,
       max: 100,
       value: 20,
@@ -152,6 +152,13 @@ export default {
     }
   },
   methods: {
+    titleCheck: function () {
+      if (this.$store.state.userProfile.vocab.includes('apan')) {
+        return 'Chinese >> Japanese'
+      } else {
+        return 'Chinese >> English'
+      }
+    },
     recordAnswer: function (english, chinese, choice) {
       // console.log(english, chinese, choice)
       this.qCount += 1
