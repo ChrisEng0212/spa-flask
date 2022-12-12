@@ -17,7 +17,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.5.0",
     "bootstrap-vue": "^2.15.0",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "less-loader": "^4.1.0",
     "sass-loader": "^7.3.1",
     "socket.io": "^2.3.0",
